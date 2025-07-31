@@ -7,10 +7,6 @@
 
 #include <iostream>
 
-// Todo
-// 플레이어 회전
-//	- 
-
 Player::Player()
 	: Actor("P", Color::Red),
 	speed(0.05f), rotSpeed(0.5f)

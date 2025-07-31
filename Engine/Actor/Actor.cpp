@@ -22,7 +22,7 @@ Actor::Actor(const char* _image, Color _color, const Vector2& _position)
 }
 
 Actor::~Actor()
-{ 
+{
 	// 메모리 해제
 	SafeDeleteArray(image);
 }
@@ -30,20 +30,21 @@ Actor::~Actor()
 // 이벤트 함수
 // 객체 생애주기(Lifetime)에 1번만 호출(초기화 목적)
 void Actor::BeginPlay()
-{ 
+{
 	hasBeganPlay = true;
 }
 
 // 프레임마다 호출 (반복성 작업/지속성이 필요한 작업)
 void Actor::Tick(float _deltaTime)
-{ }
+{
+}
 
 // 그리기 함수
 void Actor::Render()
-{	
+{
 	// 커서 이동
 	Utils::SetConsolePosition(position);
-	
+
 	// 색상 설정
 	Utils::SetConsoleTextColor(color);
 
@@ -51,7 +52,7 @@ void Actor::Render()
 	std::cout << image;
 }
 
-void Actor::SetPosition(const Vector2 & _newPosition)
+void Actor::SetPosition(const Vector2& _newPosition)
 {
 	// 예외처리 (화면 벗어났는지 확인)
 	if (_newPosition.x < 0) return;										// 화면 왼쪽
@@ -64,7 +65,7 @@ void Actor::SetPosition(const Vector2 & _newPosition)
 	// 지울 위치 확인
 	Vector2 direction = _newPosition - position;
 	position.x = direction.x >= 0 ? position.x : position.x + width - 1;
-		
+
 	// 커서 이동
 	Utils::SetConsolePosition(position);
 
@@ -132,14 +133,17 @@ bool Actor::TestIntersect(const Actor* const _other)
 
 void Actor::Destroy()
 {
-	// 삭제 요청되었다고 설정
-	if(!isExpired)
+	// 중복 삭제 방지 처리
+	if (isExpired)
 	{
-		isExpired = true;
-
-		// 레벨에 삭제 요청
-		owner->DestroyActor(this);
+		return;
 	}
+
+	isExpired = true;
+
+	// 레벨에 삭제 요청
+	owner->DestroyActor(this);
+
 }
 
 void Actor::QuitGame()
