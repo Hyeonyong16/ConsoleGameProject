@@ -40,6 +40,9 @@ private:
 	// 플레이어 위치
 	Vec2Float pos = { 0.0f, 0.0f };
 
+	// 플레이어가 보는 방향 각도
+	float angle = 0.0f;
+
 	// 플레이어가 보는 방향벡터
 	Vec2Float dir = { 0.0f, 0.0f };
 

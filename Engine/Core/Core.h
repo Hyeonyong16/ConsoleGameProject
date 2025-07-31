@@ -44,3 +44,5 @@ void SafeDeleteArray(T*& _target)
 		_target = nullptr;
 	}
 }
+
+#define PI 3.141592653
