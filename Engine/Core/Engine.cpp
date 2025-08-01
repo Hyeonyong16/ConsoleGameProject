@@ -4,6 +4,8 @@
 
 #include "Level/Level.h"
 #include "Utils/Utils.h"
+#include "Input.h"
+#include "Render/ScreenBuffer.h"
 
 // 정적 변수 초기화
 Engine* Engine::instance = nullptr;
@@ -37,14 +39,28 @@ Engine::Engine()
 		&info
 	);
 
-	// 콘솔 창 이벤트 등록
-	SetConsoleCtrlHandler(ConsoleMessageProcedure, TRUE);
-
 	// 엔진 설정 로드
 	LoadEngineSettings();
 	
 	// 랜덤 종자값(seed) 설정
 	srand(static_cast<unsigned int>(time(nullptr)));
+
+	// 이미지 버퍼 생성.
+	Vector2 screenSize(settings.width, settings.height);
+	imageBuffer = new CHAR_INFO[(screenSize.x + 1) * screenSize.y + 1];
+
+	// 버퍼 초기화 (문자 버퍼).
+	ClearImageBuffer();
+
+	// 두 개의 버퍼 생성.
+	renderTargets[0] = new ScreenBuffer(GetStdHandle(STD_OUTPUT_HANDLE), screenSize);
+	renderTargets[1] = new ScreenBuffer(screenSize);
+
+	// 버퍼 교환.
+	Present();
+
+	// 콘솔 창 이벤트 등록
+	SetConsoleCtrlHandler(ConsoleMessageProcedure, TRUE);
 }
 
 Engine::~Engine()
@@ -121,6 +137,23 @@ void Engine::Run()
 	Utils::SetConsoleTextColor(FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
 }
 
+void Engine::WriteToBuffer(const Vector2& _position, const char* _image, Color _color)
+{
+	// 문자열 길이.
+	int length = static_cast<int>(strlen(_image));
+
+	// 문자열 기록.
+	for (int ix = 0; ix < length; ++ix)
+	{
+		// 기록할 문자 위치.
+		int index = (_position.y * (settings.width)) + _position.x + ix;
+
+		// 버퍼에 문자/색상 기록.
+		imageBuffer[index].Char.AsciiChar = _image[ix];
+		imageBuffer[index].Attributes = (WORD)_color;
+	}
+}
+
 void Engine::AddLevel(Level* _newLevel)
 {
 	// 기존에 있던 레벨은 제거
@@ -134,8 +167,15 @@ void Engine::AddLevel(Level* _newLevel)
 
 void Engine::CleanUp()
 {
-	// 레벨 삭제
+	// 레벨 삭제.
 	SafeDelete(mainLevel);
+
+	// 문자 버퍼 삭제.
+	SafeDeleteArray(imageBuffer);
+
+	// 렌더 타겟 삭제.
+	SafeDelete(renderTargets[0]);
+	SafeDelete(renderTargets[1]);
 }
 
 void Engine::Quit()
@@ -159,6 +199,10 @@ int Engine::GetHeight() const
 	return settings.height;
 }
 
+void Engine::OnInitialized()
+{
+}
+
 void Engine::BeginPlay()
 {
 	if (nullptr != mainLevel)
@@ -180,15 +224,37 @@ void Engine::Tick(float _deltaTime)
 	}
 }
 
+void Engine::Clear()
+{
+	ClearImageBuffer();
+	GetRenderer()->Clear();
+}
+
 void Engine::Render()
 {
-	// 프레임 시작 시 텍스트 색상을 흰색으로
-	Utils::SetConsoleTextColor(FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+	// 화면 지우기.
+	Clear();
+
 
 	if (nullptr != mainLevel)
 	{
 		mainLevel->Render();
 	}
+
+	// 백버퍼에 데이터 쓰기.
+	GetRenderer()->Render(imageBuffer);
+
+	// 버퍼 교환.
+	Present();
+}
+
+void Engine::Present()
+{
+	// 버퍼 교환.
+	SetConsoleActiveScreenBuffer(GetRenderer()->buffer);
+
+	// 인덱스 뒤집기. 1->0, 0->1.
+	currentRenderTargetIndex = 1 - currentRenderTargetIndex;
 }
 
 void Engine::LoadEngineSettings()
@@ -258,4 +324,33 @@ void Engine::LoadEngineSettings()
 
 	// 파일 닫기
 	fclose(file);
+}
+
+ScreenBuffer* Engine::GetRenderer() const
+{
+	return renderTargets[currentRenderTargetIndex];
+}
+
+void Engine::ClearImageBuffer()
+{
+	// 글자 버퍼 덮어쓰기.
+	for (int y = 0; y < settings.height; ++y)
+	{
+		for (int x = 0; x < settings.width; ++x)
+		{
+			CHAR_INFO& buffer = imageBuffer[(y * (settings.width + 1)) + x];
+			buffer.Char.AsciiChar = ' ';
+			buffer.Attributes = 0;
+		}
+
+		// 각 줄 끝에 개행 문자 추가.
+		CHAR_INFO& buffer = imageBuffer[(y * (settings.width + 1)) + settings.width];
+		buffer.Char.AsciiChar = '\n';
+		buffer.Attributes = 0;
+	}
+
+	// 마지막에 널 문자 추가.
+	CHAR_INFO& buffer = imageBuffer[(settings.width + 1) * settings.height];
+	buffer.Char.AsciiChar = '\0';
+	buffer.Attributes = 0;
 }

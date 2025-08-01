@@ -30,6 +30,17 @@ void Level::AddActor(Actor* _newActor)
 	//_newActor->SetOwner(this);
 }
 
+Actor* Level::FindActorByID(const int _iD)
+{
+	for (Actor* actor : actors)
+	{
+		if (actor->GetID() == _iD)
+			return actor;
+	}
+
+	return nullptr;
+}
+
 void Level::DestroyActor(Actor* _destroyedActor)
 {
 	// 대기 배열에 추가
@@ -65,6 +76,22 @@ void Level::Tick(float _deltaTime)
 		if (!actor->isActive || actor->isExpired)
 		{
 			continue;
+		}
+
+		// 수명 주기 확인 및 처리.
+		if (actor->autoDestroy)
+		{
+			// 수명 주기 감소 처리.
+			actor->lifetime -= _deltaTime;
+
+			// 수명이 다했는지 확인.
+			if (actor->lifetime <= 0.0f)
+			{
+				// 액터 제거 요청하고, 다음 액터 처리.
+				actor->lifetime = 0.0f;
+				actor->Destroy();
+				continue;
+			}
 		}
 
 		actor->Tick(_deltaTime);

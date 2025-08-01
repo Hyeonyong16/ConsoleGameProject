@@ -17,6 +17,9 @@ public:
 	// 레벨에 액터를 추가할 때 사용
 	void AddActor(Actor* _newActor);
 
+	// 레벨에서 액터를 찾는 함수
+	Actor* FindActorByID(const int _iD);
+
 	// 액터 삭제 함수
 	void DestroyActor(Actor* _destroyedActor);
 

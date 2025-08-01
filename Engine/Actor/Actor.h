@@ -38,6 +38,9 @@ public:
 	void SetPosition(const Vector2& _newPosition);
 	Vector2 GetPosition() const;
 
+	// 색상 변경 함수
+	void SetColor(const Color _color);
+
 	int GetWidth() const;
 
 	// SortingOrder 설정 함수
@@ -49,11 +52,20 @@ public:
 	void SetOwner(Level* _newOwner);
 	Level* GetOwner();
 
+	// ID 확인
+	inline int GetID() const { return iD; }
+
 	// 충돌 확인 요청 함수(간단한 AABB 로직)
 	bool TestIntersect(const Actor* const _other);
 	
 	// 객체 삭제 함수
 	void Destroy();
+
+	// 객체가 삭제되기 직전에 호출되는 함수.
+	virtual void OnDestroy();
+
+	// 수명 주기 설정 함수.
+	void SetLifetime(float _newLifetime);
 
 	// 게임 종료 요청 함수
 	void QuitGame();
@@ -70,7 +82,13 @@ protected:
 
 	bool isActive = true;			// 액터가 활성상태인지
 	bool isExpired = false;			// 삭제 요청되었는지 
+	
+	float lifetime = 0.0f;			// 수명 주기 (단위: 초)
+	bool autoDestroy = false;		// 이 플래그를 true로 설정하면 수명 주기를 사용해 자동 제거
 
 	Level* owner = nullptr;			// 소유 레벨(오너십)
+
+	static int nextID;
+	int iD = 1;
 };
 
