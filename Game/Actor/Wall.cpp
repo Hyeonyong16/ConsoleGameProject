@@ -17,8 +17,8 @@ void Wall::Tick(float _deltaTime)
 
 void Wall::Render()
 {
-	if (dynamic_cast<GameLevel*>(owner)->isFPS == false)
-	{
+	///if (dynamic_cast<GameLevel*>(owner)->isFPS == false)
+	//{
 		super::Render();
-	}
+	//}
 }

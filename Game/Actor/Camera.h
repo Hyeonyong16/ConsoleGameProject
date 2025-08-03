@@ -27,7 +27,7 @@ private:
 	char** screen = nullptr;
 	Player* ownerPlayer = nullptr;
 
-	float dist = 3.f;
+	float dist = 10.f;
 
 	float fov = 90.0f;	// 90µµ
 

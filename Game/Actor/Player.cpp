@@ -63,7 +63,7 @@ void Player::Tick(float _deltaTime)
 
 	// Player 의 방향 벡터 구함
 	dir.x = cos(angleRadian);
-	dir.y = sin(angleRadian);
+	dir.y = -sin(angleRadian);
 
 	// ESC = 종료
 	if (Input::Get().GetKey(VK_ESCAPE))
@@ -83,26 +83,26 @@ void Player::Tick(float _deltaTime)
 	// 충돌 체크를 위해 이동 거리를 기록
 	if (Input::Get().GetKey('A'))
 	{
-		moveX = -dir.y * speed;
+		moveX = dir.y * speed;
 		moveY = -dir.x * speed;
 		isPosChange = true;
 	}
 	if (Input::Get().GetKey('D'))
 	{
-		moveX = dir.y * speed;
+		moveX = -dir.y * speed;
 		moveY = dir.x * speed;
 		isPosChange = true;
 	}
 	if (Input::Get().GetKey('W'))
 	{
 		moveX = dir.x * speed;
-		moveY = -dir.y * speed;
+		moveY = dir.y * speed;
 		isPosChange = true;
 	}
 	if (Input::Get().GetKey('S'))
 	{
 		moveX = -dir.x * speed;
-		moveY = dir.y * speed;
+		moveY = -dir.y * speed;
 		isPosChange = true;
 	}
 
@@ -234,8 +234,8 @@ void Player::Tick(float _deltaTime)
 
 void Player::Render()
 {
-	if(dynamic_cast<GameLevel*>(owner)->isFPS == false)
-	{
+	//if(dynamic_cast<GameLevel*>(owner)->isFPS == false)
+	//{
 		super::Render();
 
 		// 디버그용 플레이어 좌표
@@ -254,5 +254,5 @@ void Player::Render()
 			Engine::Get().WriteToBuffer(Vector2(70, 6), buffer);
 			//std::cout << "dir: " << dir.x << ", " << dir.y << "            ";
 		}
-	}
+	//}
 }

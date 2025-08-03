@@ -4,6 +4,8 @@
 #include "Actor/Wall.h"
 #include "Engine.h"
 
+#include <cmath>
+
 Camera::Camera(Player* _player)
 	: ownerPlayer(_player)
 {
@@ -51,7 +53,7 @@ void Camera::Tick(float _deltaTime)
 	// 초기화
 	for (int i = 0; i < screenHeight; ++i)
 	{
-		for (int j = 0; j < screenHeight; ++j)
+		for (int j = 0; j < screenWidth; ++j)
 		{
 			screen[i][j] = { ' ' };
 		}
@@ -83,6 +85,7 @@ void Camera::Tick(float _deltaTime)
 		rayAngleDir.x = cos(rayAngleRadian);
 		rayAngleDir.y = sin(rayAngleRadian);
 
+
 		float curDist = 0.f;
 		float xDelta = fabs(1 / rayAngleDir.x); // x 값이 1 바뀔 때 직선 거리
 		float yDelta = fabs(1 / rayAngleDir.y); // y 값이 1 바뀔 때 직선 거리
@@ -92,8 +95,11 @@ void Camera::Tick(float _deltaTime)
 		// DDA좌표확인용
 		int xPosDDA = ownerPlayer->position.x;
 		int yPosDDA = ownerPlayer->position.y;
+		
+		float maxDist = fabs(dist / sin(rayAngleRadian));
+		if (maxDist > dist) maxDist = dist;
 
-		while (curDist <= dist)
+		while (curDist <= maxDist)
 		{
 			// yDist 가 xDist 보다 짧다 -> y = n 에서 만난다
 			if (xDist > yDist)
@@ -129,14 +135,28 @@ void Camera::Tick(float _deltaTime)
 			// 벽을 찍었으면
 			if (ownerPlayer->wallMap[yPosDDA][xPosDDA] != -1)
 			{
-				//Actor* tempWall = owner->FindActorByID(ownerPlayer->wallMap[yPosDDA][xPosDDA]);
+				Actor* tempWall = owner->FindActorByID(ownerPlayer->wallMap[yPosDDA][xPosDDA]);
 				// 벽으로 테스트용
-				//dynamic_cast<Wall*>(tempWall)->SetIsCheck(true);
-				
-				for (int j = 0; j < (screenHeight / curDist); ++j)
+				dynamic_cast<Wall*>(tempWall)->SetIsCheck(true);
+				float wallDepth = fabs(curDist * cos((ownerPlayer->angle - rayAngle) * PI / 180.f));
+				/*if(rayAngle >= 0.f && rayAngle < 90.f) wallDepth = fabs(curDist * cos(rayAngleRadian)); 
+				else if (rayAngle >= 90.f && rayAngle < 180.f) wallDepth = fabs(curDist * cos(rayAngleRadian - PI/4));
+				else if (rayAngle >= 180.f && rayAngle < 270.f) wallDepth = fabs(curDist * cos(rayAngleRadian - PI / 2));
+				else wallDepth = fabs(curDist * cos(rayAngleRadian - (PI / 4) * 3)); ;*/
+
+				for (int j = 0; j < (screenHeight / wallDepth); ++j)
 				{
-					screen[(int)((screenHeight / 2) + j)][i] = '#';
-					screen[(int)((screenHeight / 2) - j)][i] = '#';
+					if (((screenHeight / 2) + j >= screenHeight) || ((screenHeight / 2) - j < 0)) continue;
+
+					char shade = '#';
+
+					if (wallDepth < dist/5.f)						shade = '#';
+					else if (wallDepth < dist/3.f)					shade = '*';
+					else if (wallDepth < dist)						shade = '.';
+					else										    shade = ' ';
+
+					screen[(int)((screenHeight / 2) + j)][screenWidth - i - 1] = shade;
+					screen[(int)((screenHeight / 2) - j)][screenWidth - i - 1] = shade;
 				}
 
 				break;
