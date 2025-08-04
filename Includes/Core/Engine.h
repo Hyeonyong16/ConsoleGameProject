@@ -29,6 +29,7 @@ public:
 
 	// 문자열 그리기 요청 함수.
 	void WriteToBuffer(const Vector2& _position, const char* _image, Color _color = Color::White);
+	void WriteToBuffer(const Vector2& _position, char _image, Color _color = Color::White);
 
 	// 레벨 추가 함수
 	void AddLevel(Level* _newLevel);

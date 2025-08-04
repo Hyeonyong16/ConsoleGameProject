@@ -35,7 +35,8 @@ Actor* Level::FindActorByID(const int _iD)
 	for (Actor* actor : actors)
 	{
 		if (actor->GetID() == _iD)
-			return actor;
+			if(actor->isExpired == false)
+				return actor;
 	}
 
 	return nullptr;

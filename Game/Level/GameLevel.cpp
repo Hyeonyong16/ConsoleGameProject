@@ -3,15 +3,12 @@
 #include "Actor/Player.h"
 #include "Actor/Wall.h"
 #include "Actor/Camera.h"
+#include "Actor/Item.h"
+
+#include "Engine.h"
 
 #include <iostream>
 
-// Todo:
-// - 카메라 만들기
-//		- 문자열로 Screen 설정할 것
-//		- 해당 문자열을 출력해서 화면 그릴것 (커서를 처음으로 돌리고 출력 반복)
-//		- 조건문으로 그냥 콘솔창 보는거랑 1인칭 만들기
-//
 
 GameLevel::GameLevel()
 {
@@ -43,11 +40,17 @@ void GameLevel::BeginPlay()
 void GameLevel::Tick(float _deltaTime)
 {
 	super::Tick(_deltaTime);
+
+	if (Input::Get().GetKeyDown('T')) { isFPS = !isFPS; }
 }
 
 void GameLevel::Render()
 {
 	super::Render();
+
+	char buffer[20] = { };
+	sprintf_s(buffer, 20, "Score: %d", score);
+	Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 7), buffer);
 }
 
 void GameLevel::ReadMapFile(const char* _fileName)
@@ -129,6 +132,14 @@ void GameLevel::ReadMapFile(const char* _fileName)
 			Wall* wall = new Wall(position);
 			AddActor(wall);
 			wallMap[position.y][position.x] = wall->GetID();
+			break;
+		}
+		case 'i':	// Todo: item 임시 처리
+		case 'I':
+		{
+			Item* item = new Item(position);
+			AddActor(item);
+			itemIDs.emplace_back(item->GetID());
 			break;
 		}
 		case 'p':	// 플레이어 시작 위치

@@ -42,15 +42,6 @@ void Actor::Tick(float _deltaTime)
 // 그리기 함수
 void Actor::Render()
 {
-	//// 커서 이동
-	//Utils::SetConsolePosition(position);
-
-	//// 색상 설정
-	//Utils::SetConsoleTextColor(color);
-
-	//// 그리기
-	//std::cout << image;
-
 	// 엔진이 관리하는 이미지 버퍼에 액터의 문자열/색상 기록.
 	Engine::Get().WriteToBuffer(position, image, color);
 }

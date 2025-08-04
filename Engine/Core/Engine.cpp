@@ -41,7 +41,7 @@ Engine::Engine()
 
 	// 엔진 설정 로드
 	LoadEngineSettings();
-	
+
 	// 랜덤 종자값(seed) 설정
 	srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -92,9 +92,9 @@ void Engine::Run()
 	{
 		// 엔진 종료 여부 확인
 		if (isQuit)
-		{ 
+		{
 			// 루프 종료
-			break; 
+			break;
 		}
 
 		// 프레임 시간 계산
@@ -108,7 +108,7 @@ void Engine::Run()
 		input.ProcessInput();
 
 		// 고정 프레임
-		if(deltaTime >= oneFrameTime)
+		if (deltaTime >= oneFrameTime)
 		{
 			BeginPlay();
 			Tick(deltaTime);
@@ -152,6 +152,17 @@ void Engine::WriteToBuffer(const Vector2& _position, const char* _image, Color _
 		imageBuffer[index].Char.AsciiChar = _image[ix];
 		imageBuffer[index].Attributes = (WORD)_color;
 	}
+}
+
+void Engine::WriteToBuffer(const Vector2& _position, char _image, Color _color)
+{
+	// 기록할 문자 위치.
+	int index = (_position.y * (settings.width)) + _position.x;
+
+	// 버퍼에 문자/색상 기록.
+	imageBuffer[index].Char.AsciiChar = _image;
+	imageBuffer[index].Attributes = (WORD)_color;
+
 }
 
 void Engine::AddLevel(Level* _newLevel)
@@ -217,7 +228,7 @@ void Engine::Tick(float _deltaTime)
 		<< ", FPS: " << (1.f / _deltaTime)
 		<< "\n";*/
 
-	// 레벨 업데이트
+		// 레벨 업데이트
 	if (nullptr != mainLevel)
 	{
 		mainLevel->Tick(_deltaTime);

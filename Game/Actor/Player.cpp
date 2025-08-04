@@ -3,6 +3,7 @@
 #include "Level/Level.h"
 #include "Level/GameLevel.h"
 #include "Actor/Wall.h"
+#include "Actor/Item.h"
 #include "Engine.h"
 #include "Core.h"
 
@@ -127,7 +128,7 @@ void Player::Tick(float _deltaTime)
 			}
 		}
 		// 왼쪽 이동
-		else if(moveX < 0)
+		else if (moveX < 0)
 		{
 			// 플레이어 크기만큼 벽이랑 충돌 판정
 			if (wallMap[(int)(pos.y + scale)][(int)(pos.x - scale)] == -1
@@ -150,7 +151,7 @@ void Player::Tick(float _deltaTime)
 			}
 		}
 		// 위쪽 이동
-		else if(moveY < 0)
+		else if (moveY < 0)
 		{
 			// 플레이어 크기만큼 벽이랑 충돌 판정
 			if (wallMap[(int)(pos.y - scale)][(int)(pos.x + scale)] == -1
@@ -167,7 +168,7 @@ void Player::Tick(float _deltaTime)
 
 	// 플레이어 회전
 	if (Input::Get().GetKey('Q'))
-	{ 
+	{
 		angle += rotSpeed;
 		if (angle > 360.0f) angle -= 360.0f;	// 360도 내에서 범위 설정
 	}
@@ -177,82 +178,48 @@ void Player::Tick(float _deltaTime)
 		if (angle < 0.0f) angle += 360.0f;		// 360도 내에서 범위 설정
 	}
 
-	//// Todo: DDA 테스트용
-	//{
-	//	float curDist = 0.f;
-	//	float xDelta = fabs(1 / dir.x); // x 값이 1 바뀔 때 직선 거리
-	//	float yDelta = fabs(1 / dir.y); // y 값이 1 바뀔 때 직선 거리
-	//	float xDist = xDelta * (pos.x - trunc(pos.x)); // 처음 x, y 값이 바뀔때 직선 거리
-	//	float yDist = yDelta * (pos.y - trunc(pos.y));
+	// Todo: 아이템 충돌 처리
+	GameLevel* gameLevel = owner->As<GameLevel>();
+	std::vector<int>& itemIdsVector = gameLevel->GetItemIDs();
 
-	//	// DDA좌표확인용
-	//	int xPosDDA = position.x;
-	//	int yPosDDA = position.y;
+	for (int tempItemId : itemIdsVector)
+	{
+		Item* tempItem = owner->FindActorByID(tempItemId)->As<Item>();
+		Vector2 itemPos = tempItem->GetPosition();
+		if (position.x == itemPos.x && position.y == itemPos.y)
+		{
+			if (tempItem->GetPlayerCollision() == false)
+			{
+				//Todo: 아이템 먹었을 때 행동 추가
 
-	//	while (curDist <= dist)
-	//	{
-	//		// yDist 가 xDist 보다 짧다 -> y = n 에서 만난다
-	//		if (xDist > yDist)
-	//		{
-	//			// 교점까지 거리 ydist 임
-	//			curDist = yDist;
-
-	//			// yDist 의 값을 갱신
-	//			yDist += yDelta;
-
-	//			// 방향에 따른 y좌표 변경
-	//			if (dir.y > 0) --yPosDDA;
-	//			else ++yPosDDA;
-	//		}
-	//		// xDist 가 yDist 보다 짧다 -> x = n 에서 만난다
-	//		else
-	//		{
-	//			// 교점까지 거리 xdist 임
-	//			curDist = xDist;
-
-	//			// xDist 의 값을 갱신
-	//			xDist += xDelta;
-
-	//			// 방향에 따른 x좌표 변경
-	//			if (dir.x > 0) ++xPosDDA;
-	//			else --xPosDDA;
-	//		}
-
-	//		// 정면 범위 내에 벽이 찍히면(ID 값이니까 벽 아니여도 가능하긴 함)
-	//		if (xPosDDA < 0 || xPosDDA >=(dynamic_cast<GameLevel*>(owner)->GetMapWidth())) return;
-	//		if (yPosDDA < 0 || yPosDDA >=(dynamic_cast<GameLevel*>(owner)->GetMapHeight())) return;
-	//		if (wallMap[yPosDDA][xPosDDA] != -1)
-	//		{
-	//			Actor* tempWall = owner->FindActorByID(wallMap[yPosDDA][xPosDDA]);
-	//			// 벽으로 테스트용
-	//			dynamic_cast<Wall*>(tempWall)->SetIsCheck(true);
-	//			break;
-	//		}
-	//	}
-	//}
+				tempItem->SetPlayerCollision(true);
+			}
+			int a = 0;
+		}
+	}
 }
 
 void Player::Render()
 {
 	//if(dynamic_cast<GameLevel*>(owner)->isFPS == false)
 	//{
-		super::Render();
+	super::Render();
 
-		// 디버그용 플레이어 좌표
-		{
-			char buffer[40] = { };
-			sprintf_s(buffer, 40, "x: %d, y: %d", position.x, position.y);
-			Engine::Get().WriteToBuffer(Vector2(70, 3), buffer);
-			//std::cout << "x: " << position.x << " y: " << position.y << "            ";
-			sprintf_s(buffer, 40, "pos x: %.2f, y: %.2f", pos.x, pos.y);
-			Engine::Get().WriteToBuffer(Vector2(70, 4), buffer);
-			//std::cout << "pos x: " << pos.x << " y: " << pos.y << "            ";
-			sprintf_s(buffer, 40, "angle: %.2f", angle);
-			Engine::Get().WriteToBuffer(Vector2(70, 5), buffer);
-			//std::cout << "angle: " << angle << "            ";
-			sprintf_s(buffer, 40, "dir x: %.2f, y: %.2f", dir.x, dir.y);
-			Engine::Get().WriteToBuffer(Vector2(70, 6), buffer);
-			//std::cout << "dir: " << dir.x << ", " << dir.y << "            ";
-		}
+	// 디버그용 플레이어 좌표
+	{
+		char buffer[30] = { };
+		sprintf_s(buffer, 30, "x: %d, y: %d", position.x, position.y);
+		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 3), buffer);
+		//std::cout << "x: " << position.x << " y: " << position.y << "            ";
+		sprintf_s(buffer, 30, "pos x: %.2f, y: %.2f", pos.x, pos.y);
+		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 4), buffer);
+		//std::cout << "pos x: " << pos.x << " y: " << pos.y << "            ";
+		sprintf_s(buffer, 30, "angle: %.2f", angle);
+		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 5), buffer);
+		//std::cout << "angle: " << angle << "            ";
+		sprintf_s(buffer, 30, "dir x: %.2f, y: %.2f", dir.x, dir.y);
+		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 6), buffer);
+		//std::cout << "dir: " << dir.x << ", " << dir.y << "            ";
+	}
 	//}
 }

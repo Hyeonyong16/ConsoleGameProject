@@ -47,7 +47,7 @@ private:
 	Vec2Float pos = { 0.0f, 0.0f };
 
 	// 플레이어가 보는 방향 각도
-	float angle = 0.1f;
+	float angle = 10.f;
 
 	// 플레이어가 보는 방향벡터
 	Vec2Float dir = { 0.0f, 0.0f };
@@ -61,9 +61,8 @@ private:
 	// 플레이어 크기
 	float scale = 0.0f;
 
-	// Todo: 테스트용 거리
-
+	
+	// 렌더링 및 충돌 체크를 위한 레벨 내 클래스 저장
 	int** wallMap = nullptr;
-
 	Camera* cam = nullptr;
 };

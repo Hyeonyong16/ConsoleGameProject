@@ -3,6 +3,12 @@
 
 // 플레이어 시점을 스크린으로 표시할 예정
 
+struct pixelInfo
+{
+	char text = '\0';
+	Color color = Color::White;
+};
+
 class Player;
 
 class Camera : public Actor
@@ -20,15 +26,21 @@ public:
 	virtual void Render() override;
 
 private:
-	int screenWidth = 120;
+	int screenWidth = 140;
 	int screenHeight = 50;
 
 	// 화면을 나타낼 2차원 배열
-	char** screen = nullptr;
+	pixelInfo** screen = nullptr;
+
 	Player* ownerPlayer = nullptr;
 
-	float dist = 10.f;
+	// 1차원으로 각 위치의 깊이를 기록할 버퍼
+	float* depthBuffer = nullptr;
 
+	// 최대 렌더링 거리
+	float dist = 15.f;
+
+	// 시야각
 	float fov = 90.0f;	// 90도
 
 };

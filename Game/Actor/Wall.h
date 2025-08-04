@@ -14,6 +14,7 @@ public:
 
 	inline bool GetIsCheck() const { return isCheck; }
 	inline void SetIsCheck(bool _isCheck) { isCheck = _isCheck; }
+
 private:
 	bool isCheck = false;
 };

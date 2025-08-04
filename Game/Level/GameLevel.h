@@ -1,5 +1,6 @@
 #pragma once
 #include "Level/Level.h"
+#include <vector>
 
 
 class GameLevel : public Level
@@ -18,6 +19,10 @@ public:
 	inline int GetMapWidth() { return mapWidth; }
 	inline int GetMapHeight() { return mapHeight; }
 
+	std::vector<int>& GetItemIDs() { return itemIDs; }
+
+	inline void AddScore() { ++score; }
+
 	bool isFPS = true;
 
 private:
@@ -29,4 +34,10 @@ private:
 	int mapHeight = 0;
 	// iD 로 저장
 	int** wallMap = nullptr;
+
+	// Todo: item 확인용 점수
+	int score = 0;
+
+	std::vector<int> itemIDs;
+
 };
