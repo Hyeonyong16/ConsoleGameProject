@@ -22,11 +22,17 @@ public:
 	// Pos 위치에 문자 설정
 	void SetCharinScreen(const char _c, Vector2 _pos);
 
+	inline int GetScreenWidth() const { return screenWidth; }
+	inline int GetScreenHeight() const { return screenHeight; }
+
+	inline int GetDist() const { return dist; }
+
+	virtual void BeginPlay() override;
 	virtual void Tick(float _deltaTime) override;
 	virtual void Render() override;
 
 private:
-	int screenWidth = 140;
+	int screenWidth = 180;
 	int screenHeight = 50;
 
 	// 화면을 나타낼 2차원 배열
@@ -41,6 +47,6 @@ private:
 	float dist = 15.f;
 
 	// 시야각
-	float fov = 90.0f;	// 90도
+	float fov = 70.0f;	// 90도
 
 };

@@ -1,7 +1,8 @@
 #pragma once
 #include "Actor/Actor.h"
-#include "Camera.h"
+#include "Utils/Timer.h"
 
+class Camera;
 struct Vec2Float
 {
 public:
@@ -40,7 +41,12 @@ public:
 	virtual void Tick(float _deltaTime) override;
 	virtual void Render() override;
 
+public:
+	inline void SetCamera(Camera* _camera) { cam = _camera; }
+
 private:
+	// 사격 기능
+	void Fire();
 
 private:
 	// 플레이어 위치
@@ -60,6 +66,15 @@ private:
 
 	// 플레이어 크기
 	float scale = 0.0f;
+
+	// 총알 갯수
+	int bullet = 30;
+
+	// 사격 여부
+	bool isFire = false;
+	
+	// 사격 타이머
+	Timer shotTimer;
 
 	
 	// 렌더링 및 충돌 체크를 위한 레벨 내 클래스 저장

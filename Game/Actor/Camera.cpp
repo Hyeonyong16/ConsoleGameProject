@@ -8,6 +8,9 @@
 #include <string>
 #include <cmath>
 
+// 렌더링 시 거리에 따른 비율 설정을 위한 static 전역 변수
+static float itemScale = 2.0f;
+
 Camera::Camera(Player* _player)
 	: ownerPlayer(_player)
 {
@@ -60,6 +63,14 @@ void Camera::SetCharinScreen(const char _c, Vector2 _pos)
 	screen[_pos.y][_pos.x].text = _c;
 }
 
+void Camera::BeginPlay()
+{
+	if (nullptr != owner->As<GameLevel>())
+	{
+		owner->As<GameLevel>()->SetCamera(this);
+	}
+}
+
 void Camera::Tick(float _deltaTime)
 {
 	// 초기화
@@ -103,6 +114,7 @@ void Camera::Tick(float _deltaTime)
 		// 각 카메라 각도에서 나오는 Ray 의 최대 길이
 		float maxDist = fabs(dist / sin(rayAngleRadian));
 
+		float tempDist = 0.f;
 		while (curDist <= maxDist)
 		{
 			// yDist 가 xDist 보다 짧다 -> y = n 에서 만난다
@@ -138,7 +150,8 @@ void Camera::Tick(float _deltaTime)
 
 			// 벽을 찍었으면
 			if (ownerPlayer->wallMap[yPosDDA][xPosDDA] != -1
-				&& owner->FindActorByID(ownerPlayer->wallMap[yPosDDA][xPosDDA])->As<Wall>())
+				&& owner->FindActorByID(ownerPlayer->wallMap[yPosDDA][xPosDDA])->As<Wall>()
+				&& curDist > 0.1f)
 			{
 				// 현재 위치에서 카메라 평면 상까지의 거리를 구함
 				float wallDepth = fabs(curDist * cos((ownerPlayer->angle - rayAngle) * PI / 180.f));
@@ -158,8 +171,11 @@ void Camera::Tick(float _deltaTime)
 					else if (wallDepth < dist)						shade = '.';
 					else										    shade = ' ';
 
-					screen[(int)((screenHeight / 2) + j)][screenWidth - i - 1] = { shade , Color::White };
-					screen[(int)((screenHeight / 2) - j)][screenWidth - i - 1] = { shade , Color::White };
+					//if(owner->FindActorByID(ownerPlayer->wallMap[yPosDDA][xPosDDA])->As<Wall>()->GetColor() == Color::Magenta)
+					screen[(int)((screenHeight / 2) + j)][screenWidth - i - 1] = { shade 
+						, owner->FindActorByID(ownerPlayer->wallMap[yPosDDA][xPosDDA])->As<Wall>()->GetColor() };
+					screen[(int)((screenHeight / 2) - j)][screenWidth - i - 1] = { shade 
+						, owner->FindActorByID(ownerPlayer->wallMap[yPosDDA][xPosDDA])->As<Wall>()->GetColor() };
 				}
 				
 				break;
@@ -167,7 +183,7 @@ void Camera::Tick(float _deltaTime)
 		}
 	}
 
-	// Todo: Item 그리기 확인용
+	// Item 그리기 확인용
 	// 1. 플레이어 방향 벡터와 플레이어에서 아이템 방향 벡터 사이각 구하기
 	// 2. 구해진 각도의 콘솔상에서 위치 구하기
 	// 3. 해당 위치에서 일정 크기 만큼 계산
@@ -178,7 +194,10 @@ void Camera::Tick(float _deltaTime)
 	// 아이템이 들어있는 벡터를 받아서 반복문 돌리기
 	for (int id : gameLevel->GetItemIDs())
 	{
+		// 아이템의 위치 (사각형 기준 원점 잡으려고 0.5 더해줌
 		Vector2 itemPos = owner->FindActorByID(id)->GetPosition();
+		itemPos.x += 0.5f;
+		itemPos.y += 0.5f;
 
 		// 아이템과 플레이어 사이 거리 구하기
 		float itemDist = sqrtf(((float)itemPos.x - playerPos.x) * ((float)itemPos.x - playerPos.x)
@@ -188,7 +207,7 @@ void Camera::Tick(float _deltaTime)
 		if (itemDist > dist) continue;
 
 		// 내적으로 두 벡터 사이각 구하기
-		ownerPlayer->dir; // 유저 방향벡터
+		// ownerPlayer->dir; // 유저 방향벡터
 		Vec2Float itemDir;
 		itemDir.x = (float)itemPos.x - playerPos.x;
 		itemDir.y = (float)itemPos.y - playerPos.y;
@@ -198,29 +217,36 @@ void Camera::Tick(float _deltaTime)
 			/ sqrtf((itemDir.x * itemDir.x) + (itemDir.y * itemDir.y)));
 		float itemPlayerDegree = itemPlayerRadian * 180 / PI;
 
+		// 플레이어 방향 벡터 기준 아이템 위치의 좌, 우 판별을 위한 외적값
 		float cross = (ownerPlayer->dir.x * itemDir.y) - (ownerPlayer->dir.y * itemDir.x);
 
+		// 플레이어와 아이템 사이 각도 차이 절대값이 시야각 내부일때 진행 
 		if (fabsf(itemPlayerDegree) < (45.f))
 		{
 			int i = 0;
 			float rayAngle = (ownerPlayer->angle - (fov / 2)) + ((float)i / (float)screenWidth) * fov;
+			// 외적값이 양수이면 오른쪽
 			if (cross > 0)
 			{
+				// 현재 ray의 각도가 아이템 방향 각도가 될 때까지 (float 오차로 정확하지 않으니 커지면 바로 탈출)
 				while(rayAngle < (ownerPlayer->angle - itemPlayerDegree))
 				{
 					++i;
+					// ray 각도 값 갱신
 					rayAngle = (ownerPlayer->angle - (fov / 2)) + ((float)i / (float)screenWidth) * fov;
 				}
 			}
+			// 외적값이 음수이면 왼쪽
 			else
 			{
+				// 현재 ray의 각도가 아이템 방향 각도가 될 때까지 (float 오차로 정확하지 않으니 커지면 바로 탈출)
 				while (rayAngle < (ownerPlayer->angle + itemPlayerDegree))
 				{
 					++i;
+					// ray 각도 값 갱신
 					rayAngle = (ownerPlayer->angle - (fov / 2)) + ((float)i / (float)screenWidth) * fov;
 				}
 			}
-			
 
 			// 현재 플레이어 기준 나가는 Ray 의 Angle
 			// 최대를 왼쪽, 최소를 오른쪽 끝으로 잡고 콘솔 각 칸 수만큼 시야각을 나눠서 진행
@@ -273,35 +299,31 @@ void Camera::Tick(float _deltaTime)
 			}
 
 			// 현재 위치에서 카메라 평면 상까지의 거리를 구함
-			float wallDepth = fabs(curDist * cos((ownerPlayer->angle - rayAngle) * PI / 180.f));
-			//depthBuffer[i] = wallDepth;
+			float wallDepth = fabs(itemDist * cos((ownerPlayer->angle - rayAngle) * PI / 180.f));
 			//벽 거리에 따라 그리는 반복문
 
-			for (int ix = -2; ix < 3; ++ix)
+			for (int ix = -((screenHeight / itemScale / wallDepth) / 2.f);
+				ix < ((screenHeight / itemScale) / wallDepth) / 2.f; ++ix)
 			{
-				for (int j = 0; j < 3; ++j)
+				for (int j = 0;
+					j < ((screenHeight / itemScale) / wallDepth) / 2; ++j)
 				{
 					// 화면에서 벗어나지 않게 예외처리
-					if (((screenHeight / 2) + j >= screenHeight) || ((screenHeight / 2) - j < 0)) continue;
-					if ((screenWidth - i - 1 + ix) < 0 || (screenWidth - i - 1 + ix) >= screenWidth) 
-						continue;
+					if (((screenHeight / 2) + j >= screenHeight) 
+						|| ((screenHeight / 2) - j < 0)) continue;
+					if ((screenWidth - i - 1 + ix) < 0 
+						|| (screenWidth - i - 1 + ix) >= screenWidth) continue;
 
 					// 벽까지 거리에 따른 벽 Shading
 					char shade = '^';
 
-					if (wallDepth < depthBuffer[i])
+					if (wallDepth < depthBuffer[i - ix])
 					{
 						screen[(int)((screenHeight / 2) + j)][screenWidth - i - 1 + ix] = { shade , Color::Cyan };
 						screen[(int)((screenHeight / 2) - j)][screenWidth - i - 1 + ix] = { shade , Color::Cyan };
 					}
-					else
-					{
-						// Todo: Delta 값 오차 때문에 확 뛰어버려서 종종 출력이 안됨
-						int a = 0;
-					}
 				}
 			}
-
 		}
 	}
 
@@ -314,8 +336,8 @@ void Camera::Render()
 	{
 		for (int i = 0; i < screenHeight; ++i)
 		{
-			for(int j = 0; j < screenWidth; ++j)
-				Engine::Get().WriteToBuffer(Vector2(j, i), screen[i][j].text, screen[i][j].color);
+			for (int j = 0; j < screenWidth; ++j)
+				Engine::Get().WriteToBuffer(Vector2(j + 1, i + 1), screen[i][j].text, screen[i][j].color);
 		}
 	}
 }

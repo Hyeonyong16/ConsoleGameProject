@@ -22,11 +22,22 @@ ScreenBuffer::ScreenBuffer(const Vector2& screenSize)
 	}
 
 	// 콘솔 버퍼 크기 설정.
-	SetConsoleScreenBufferSize(buffer, Vector2(screenSize.x, screenSize.y));
-	SMALL_RECT rect{ 0, 0, (short)screenSize.x, (short)screenSize.y };
+	BOOL setScreenBufferSizeResult
+		= SetConsoleScreenBufferSize(buffer, Vector2(screenSize.x + 1, screenSize.y + 1));
+	if (!setScreenBufferSizeResult)
+	{
+		std::cerr << "Failed to set screen buffer size\n";
+		__debugbreak();
+	}
 
 	// 콘솔 창 크기 설정.
-	SetConsoleWindowInfo(buffer, true, &rect);
+	SMALL_RECT rect{ 0, 0, (short)screenSize.x, (short)screenSize.y };
+	BOOL setWindowsInfoResult = SetConsoleWindowInfo(buffer, true, &rect);
+	if (!setWindowsInfoResult)
+	{
+		std::cerr << "Failed to set console window size\n";
+		__debugbreak();
+	}
 
 	// 커서 안보이게 설정.
 	CONSOLE_CURSOR_INFO info{ 1, FALSE };
@@ -36,16 +47,28 @@ ScreenBuffer::ScreenBuffer(const Vector2& screenSize)
 ScreenBuffer::ScreenBuffer(HANDLE console, const Vector2& screenSize)
 	: screenSize(screenSize), buffer(console)
 {
+	// 콘솔 버퍼 크기 설정.
+	BOOL setScreenBufferSizeResult
+		= SetConsoleScreenBufferSize(buffer, Vector2(screenSize.x + 1, screenSize.y + 1));
+	if (!setScreenBufferSizeResult)
+	{
+		std::cerr << "Failed to set screen buffer size\n";
+		__debugbreak();
+	}
+
+	// 콘솔 창 크기 설정.
+	SMALL_RECT rect{ 0, 0, (short)screenSize.x, (short)screenSize.y };
+	BOOL setWindowsInfoResult = SetConsoleWindowInfo(buffer, true, &rect);
+	if (!setWindowsInfoResult)
+	{
+		int errorCode = GetLastError();
+		std::cerr << "Failed to set console window size. errorCode: " << errorCode << "\n";
+		__debugbreak();
+	}
+
 	// 커서 안보이게 설정.
 	CONSOLE_CURSOR_INFO cursorInfo{ 1, FALSE };
 	SetConsoleCursorInfo(buffer, &cursorInfo);
-
-	// 
-	CONSOLE_SCREEN_BUFFER_INFOEX bufferInfo = {};
-	GetConsoleScreenBufferInfoEx(buffer, &bufferInfo);
-	bufferInfo.dwSize.X = screenSize.x + 1;
-	bufferInfo.dwSize.Y = screenSize.y + 1;
-	SetConsoleScreenBufferInfoEx(buffer, &bufferInfo);
 }
 
 ScreenBuffer::~ScreenBuffer()

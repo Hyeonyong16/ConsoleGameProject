@@ -4,6 +4,7 @@
 #include "Actor/Wall.h"
 #include "Actor/Camera.h"
 #include "Actor/Item.h"
+#include "Manager/UIManager.h"
 
 #include "Engine.h"
 
@@ -15,6 +16,7 @@ GameLevel::GameLevel()
 	// 플레이어 추가.
 	//AddActor(new Player());
 	ReadMapFile("Map1.txt");
+	AddActor(new UIManager(this));
 }
 
 GameLevel::~GameLevel()
@@ -48,9 +50,12 @@ void GameLevel::Render()
 {
 	super::Render();
 
-	char buffer[20] = { };
-	sprintf_s(buffer, 20, "Score: %d", score);
-	Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 7), buffer);
+	if(!isFPS)
+	{
+		char buffer[20] = { };
+		sprintf_s(buffer, 20, "Score: %d", score);
+		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 7), buffer);
+	}
 }
 
 void GameLevel::ReadMapFile(const char* _fileName)
@@ -147,6 +152,12 @@ void GameLevel::ReadMapFile(const char* _fileName)
 		{
 			Player* player = new Player(position);
 			AddActor(player);
+			this->player = player;
+
+			Camera* camera = new Camera(player);
+			AddActor(camera);
+			this->camera = camera;
+			player->SetCamera(camera);
 			break;
 		}
 		}

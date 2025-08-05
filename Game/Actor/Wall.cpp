@@ -11,14 +11,12 @@ void Wall::Tick(float _deltaTime)
 {
 	if (isCheck)
 		color = Color::White;
-	else
-		color = Color::Green;
 }
 
 void Wall::Render()
 {
-	///if (dynamic_cast<GameLevel*>(owner)->isFPS == false)
-	//{
+	if (dynamic_cast<GameLevel*>(owner)->isFPS == false)
+	{
 		super::Render();
-	//}
+	}
 }

@@ -1,8 +1,10 @@
 #pragma once
 #include "Level/Level.h"
+
 #include <vector>
 
-
+class Player;
+class Camera;
 class GameLevel : public Level
 {
 	RTTI_DECLARATIONS(GameLevel, Level)
@@ -16,8 +18,14 @@ public:
 	virtual void Render() override;
 
 	inline int**& getWallMap() { return wallMap; }
-	inline int GetMapWidth() { return mapWidth; }
-	inline int GetMapHeight() { return mapHeight; }
+	inline int GetMapWidth() const { return mapWidth; }
+	inline int GetMapHeight() const { return mapHeight; }
+
+	inline int GetScore() const { return score; }
+	inline Player* GetPlayer() const { return player; }
+
+	inline Camera* GetCamera() const { return camera; }
+	inline void SetCamera(Camera* _camera) { camera = _camera; }
 
 	std::vector<int>& GetItemIDs() { return itemIDs; }
 
@@ -35,8 +43,12 @@ private:
 	// iD 로 저장
 	int** wallMap = nullptr;
 
-	// Todo: item 확인용 점수
+	// 점수
 	int score = 0;
+
+	// 현재 레벨의 플레이어 기록용
+	Player* player = nullptr;
+	Camera* camera = nullptr;
 
 	std::vector<int> itemIDs;
 

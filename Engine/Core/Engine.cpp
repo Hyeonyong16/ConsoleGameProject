@@ -61,6 +61,13 @@ Engine::Engine()
 
 	// 콘솔 창 이벤트 등록
 	SetConsoleCtrlHandler(ConsoleMessageProcedure, TRUE);
+
+	// 콘솔 창 크기 변경 안되도록 설정.
+	// "관리자 모드에서만 제대로 실행됨"
+	DisableToResizeWindow();
+
+	// cls 호출.
+	system("cls");
 }
 
 Engine::~Engine()
@@ -335,6 +342,22 @@ void Engine::LoadEngineSettings()
 
 	// 파일 닫기
 	fclose(file);
+}
+
+void Engine::DisableToResizeWindow()
+{
+	// 콘솔 창 핸들 가져오기.
+	HWND window = GetConsoleWindow();
+
+	// 콘솔 창에 설정된 스타일 값 가져오기.
+	LONG style = GetWindowLong(window, GWL_STYLE);
+
+	// 콘솔 창 스타일에서 크기 조절 관련 옵션 제거.
+	style &= ~WS_MAXIMIZEBOX;
+	style &= ~WS_SIZEBOX;
+
+	// 콘솔창에 변경된 스타일 적용.
+	SetWindowLongW(window, GWL_STYLE, style);
 }
 
 ScreenBuffer* Engine::GetRenderer() const

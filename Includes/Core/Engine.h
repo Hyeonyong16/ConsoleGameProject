@@ -67,6 +67,9 @@ protected:
 	// 엔진 설정 로드 함수
 	void LoadEngineSettings();
 
+	// 콘솔 창 크기 조절 안되도록 할 때 사용하는 함수.
+	void DisableToResizeWindow();
+
 	// 백버퍼 렌더 타겟 반환 함수.
 	ScreenBuffer* GetRenderer() const;
 

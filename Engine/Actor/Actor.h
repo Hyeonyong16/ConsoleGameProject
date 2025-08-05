@@ -39,6 +39,7 @@ public:
 	Vector2 GetPosition() const;
 
 	// 색상 변경 함수
+	Color GetColor() const { return color; }
 	void SetColor(const Color _color);
 
 	int GetWidth() const;

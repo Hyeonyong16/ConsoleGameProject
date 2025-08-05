@@ -4,6 +4,7 @@
 #include "Level/GameLevel.h"
 #include "Actor/Wall.h"
 #include "Actor/Item.h"
+#include "Actor/Camera.h"
 #include "Engine.h"
 #include "Core.h"
 
@@ -21,6 +22,8 @@ Player::Player()
 	SetPosition(Vector2(xPosition, yPosition));
 	pos.x = (float)xPosition;
 	pos.y = (float)yPosition;
+
+	shotTimer.SetTargetTime(0.5f);
 
 	SetSortingOrder(3);
 }
@@ -42,14 +45,7 @@ void Player::BeginPlay()
 {
 	super::BeginPlay();
 
-	cam = new Camera(this);
-	owner->AddActor(cam);
-
-	// GameLevel 에서 wall 배치 받아오기
-	if (GetOwner()->As<GameLevel>())
-	{
-		wallMap = dynamic_cast<GameLevel*>(GetOwner())->getWallMap();
-	}
+	wallMap = dynamic_cast<GameLevel*>(GetOwner())->getWallMap();
 }
 
 void Player::Tick(float _deltaTime)
@@ -178,6 +174,26 @@ void Player::Tick(float _deltaTime)
 		if (angle < 0.0f) angle += 360.0f;		// 360도 내에서 범위 설정
 	}
 
+	if (isFire)
+	{
+		shotTimer.Tick(_deltaTime);
+		if (shotTimer.IsTimeout()) 
+		{
+			shotTimer.Reset();
+			shotTimer.SetTargetTime(0.5f);
+			isFire = false;
+		}
+	}
+	// 사격
+	if (Input::Get().GetKeyDown(VK_SPACE))
+	{
+		// 사격 가능 시간이 되면 사격
+		if (!isFire)
+		{
+			Fire();
+		}
+	}
+
 	// Todo: 아이템 충돌 처리
 	GameLevel* gameLevel = owner->As<GameLevel>();
 	std::vector<int>& itemIdsVector = gameLevel->GetItemIDs();
@@ -201,25 +217,89 @@ void Player::Tick(float _deltaTime)
 
 void Player::Render()
 {
-	//if(dynamic_cast<GameLevel*>(owner)->isFPS == false)
-	//{
-	super::Render();
-
-	// 디버그용 플레이어 좌표
+	if (dynamic_cast<GameLevel*>(owner)->isFPS == false)
 	{
-		char buffer[30] = { };
-		sprintf_s(buffer, 30, "x: %d, y: %d", position.x, position.y);
-		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 3), buffer);
-		//std::cout << "x: " << position.x << " y: " << position.y << "            ";
-		sprintf_s(buffer, 30, "pos x: %.2f, y: %.2f", pos.x, pos.y);
-		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 4), buffer);
-		//std::cout << "pos x: " << pos.x << " y: " << pos.y << "            ";
-		sprintf_s(buffer, 30, "angle: %.2f", angle);
-		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 5), buffer);
-		//std::cout << "angle: " << angle << "            ";
-		sprintf_s(buffer, 30, "dir x: %.2f, y: %.2f", dir.x, dir.y);
-		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 6), buffer);
-		//std::cout << "dir: " << dir.x << ", " << dir.y << "            ";
+		super::Render();
+
+		// 디버그용 플레이어 좌표
+		{
+			char buffer[30] = { };
+			sprintf_s(buffer, 30, "x: %d, y: %d", position.x, position.y);
+			Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 3), buffer);
+			//std::cout << "x: " << position.x << " y: " << position.y << "            ";
+			sprintf_s(buffer, 30, "pos x: %.2f, y: %.2f", pos.x, pos.y);
+			Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 4), buffer);
+			//std::cout << "pos x: " << pos.x << " y: " << pos.y << "            ";
+			sprintf_s(buffer, 30, "angle: %.2f", angle);
+			Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 5), buffer);
+			//std::cout << "angle: " << angle << "            ";
+			sprintf_s(buffer, 30, "dir x: %.2f, y: %.2f", dir.x, dir.y);
+			Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 6), buffer);
+			//std::cout << "dir: " << dir.x << ", " << dir.y << "            ";
+		}
 	}
-	//}
+}
+
+void Player::Fire()
+{
+	isFire = true;
+
+	// 현재 플레이어 기준 나가는 Ray 의 Angle
+		// 최대를 왼쪽, 최소를 오른쪽 끝으로 잡고 콘솔 각 칸 수만큼 시야각을 나눠서 진행
+
+	float rayAngleRadian = angle * PI / 180;
+	Vec2Float rayAngleDir;
+	rayAngleDir.x = cos(rayAngleRadian);
+	rayAngleDir.y = sin(rayAngleRadian);
+
+	float curDist = 0.f;
+	float xDelta = fabs(1 / rayAngleDir.x); // x 값이 1 바뀔 때 직선 거리
+	float yDelta = fabs(1 / rayAngleDir.y); // y 값이 1 바뀔 때 직선 거리
+	float xDist = xDelta * (pos.x - trunc(pos.x));	// 처음 x값이 바뀔때 직선 거리
+	float yDist = yDelta * (pos.y - trunc(pos.y));	// 처음 y값이 바뀔때 직선 거리
+
+	// DDA좌표확인용
+	int xPosDDA = position.x;
+	int yPosDDA = position.y;
+
+	while (curDist <= cam->GetDist())
+	{
+		// yDist 가 xDist 보다 짧다 -> y = n 에서 만난다
+		if (xDist > yDist)
+		{
+			// 교점까지 거리 ydist 임
+			curDist = yDist;
+
+			// yDist 의 값을 갱신
+			yDist += yDelta;
+
+			// 방향에 따른 y좌표 변경
+			if (rayAngleDir.y > 0) --yPosDDA;
+			else ++yPosDDA;
+		}
+		// xDist 가 yDist 보다 짧다 -> x = n 에서 만난다
+		else
+		{
+			// 교점까지 거리 xdist 임
+			curDist = xDist;
+
+			// xDist 의 값을 갱신
+			xDist += xDelta;
+
+			// 방향에 따른 x좌표 변경
+			if (rayAngleDir.x > 0) ++xPosDDA;
+			else --xPosDDA;
+		}
+
+		// 정면 범위 내에 벽이 찍히면(ID 값이니까 벽 아니여도 가능하긴 함)
+		if (xPosDDA < 0 || xPosDDA >= (dynamic_cast<GameLevel*>(owner)->GetMapWidth())) return;
+		if (yPosDDA < 0 || yPosDDA >= (dynamic_cast<GameLevel*>(owner)->GetMapHeight())) return;
+
+		// 벽을 찍었으면
+		if (wallMap[yPosDDA][xPosDDA] != -1
+			&& owner->FindActorByID(wallMap[yPosDDA][xPosDDA])->As<Wall>())
+		{
+			owner->FindActorByID(wallMap[yPosDDA][xPosDDA])->As<Wall>()->SetColor(Color::Magenta);
+		}
+	}
 }

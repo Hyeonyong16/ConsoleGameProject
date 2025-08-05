@@ -26,5 +26,8 @@ void Item::Tick(float _deltaTime)
 
 void Item::Render()
 {
-	super::Render();
+	if (dynamic_cast<GameLevel*>(owner)->isFPS == false)
+	{
+		super::Render();
+	}
 }
