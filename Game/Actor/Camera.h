@@ -1,5 +1,6 @@
 #pragma once
 #include "Actor/Actor.h"
+#include <vector>
 
 // 플레이어 시점을 스크린으로 표시할 예정
 
@@ -27,6 +28,8 @@ public:
 
 	inline int GetDist() const { return dist; }
 
+	void DrawActorByDDA(std::vector<int> _actorIDs, float _renderScale);
+
 	virtual void BeginPlay() override;
 	virtual void Tick(float _deltaTime) override;
 	virtual void Render() override;
@@ -47,6 +50,6 @@ private:
 	float dist = 15.f;
 
 	// 시야각
-	float fov = 70.0f;	// 90도
+	float fov = 90.0f;	// 90도
 
 };

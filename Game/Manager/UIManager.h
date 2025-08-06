@@ -31,6 +31,7 @@ public:
 	UIManager(GameLevel* _gameLevel);
 	~UIManager();
 
+	virtual void BeginPlay() override;
 	virtual void Tick(float _deltaTime) override;
 	virtual void Render() override;
 

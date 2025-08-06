@@ -231,11 +231,7 @@ void Engine::BeginPlay()
 
 void Engine::Tick(float _deltaTime)
 {
-	/*std::cout << "DeltaTime: " << _deltaTime
-		<< ", FPS: " << (1.f / _deltaTime)
-		<< "\n";*/
-
-		// 레벨 업데이트
+	// 레벨 업데이트
 	if (nullptr != mainLevel)
 	{
 		mainLevel->Tick(_deltaTime);

@@ -18,7 +18,6 @@ void Item::Tick(float _deltaTime)
 			std::vector<int>& tempItemIds = GetOwner()->As<GameLevel>()->GetItemIDs();
 			auto it = std::remove(tempItemIds.begin(), tempItemIds.end(), iD);
 			tempItemIds.erase(it, tempItemIds.end());
-			dynamic_cast<GameLevel*>(GetOwner())->AddScore();
 		}
 		Destroy();
 	}

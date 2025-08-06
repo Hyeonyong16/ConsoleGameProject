@@ -44,6 +44,20 @@ public:
 public:
 	inline void SetCamera(Camera* _camera) { cam = _camera; }
 
+	inline int GetBullet() const { return bullet; }
+	inline void IncreaseBullet(int _num) { bullet += _num; }
+
+	inline Vec2Float GetPosFloat() const { return pos; }
+	inline Vec2Float GetDir() const { return dir; }
+	inline float GetAngle() const { return angle; }
+
+	// Vec2Float 위치랑 Vector2 위치를 동기화
+	void ResyncPos()
+	{
+		pos.x = (float)position.x;
+		pos.y = (float)position.y;
+	}
+
 private:
 	// 사격 기능
 	void Fire();
@@ -68,7 +82,7 @@ private:
 	float scale = 0.0f;
 
 	// 총알 갯수
-	int bullet = 30;
+	int bullet = 5;
 
 	// 사격 여부
 	bool isFire = false;

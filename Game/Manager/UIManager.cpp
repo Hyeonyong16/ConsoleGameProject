@@ -1,6 +1,7 @@
 #include "UIManager.h"
 #include "Engine.h"
 #include "Level/GameLevel.h"
+#include "Actor/Player.h"
 #include "Actor/Camera.h"
 
 #include <iostream>
@@ -25,8 +26,14 @@ UIManager::~UIManager()
 	assets.clear();
 }
 
+void UIManager::BeginPlay()
+{
+	super::BeginPlay();
+}
+
 void UIManager::Tick(float _deltaTime)
-{;
+{
+
 }
 
 void UIManager::Render()
@@ -93,7 +100,30 @@ void UIManager::Render()
 	}
 
 	// Á¡¼ö (37 ~ 71)
+	{
+		char buffer[30] = { };
+		sprintf_s(buffer, 30, "Score: %d", gameLevel->GetScore());
+		Engine::Get().WriteToBuffer(Vector2(38, gameCamera->GetScreenHeight() + 7), buffer);
+		sprintf_s(buffer, 30, "LeftEnemy: %d", gameLevel->GetMonsterNum());
+		Engine::Get().WriteToBuffer(Vector2(38, gameCamera->GetScreenHeight() + 10), buffer);
 
+		sprintf_s(buffer, 30, "pos x: %.2f, y: %.2f",
+			gameLevel->GetPlayer()->GetPosFloat().x,
+			gameLevel->GetPlayer()->GetPosFloat().y
+		);
+		Engine::Get().WriteToBuffer(Vector2(38, gameCamera->GetScreenHeight() + 14), buffer);
+
+		sprintf_s(buffer, 30, "angle: %.2f",
+			gameLevel->GetPlayer()->GetAngle()
+		);
+		Engine::Get().WriteToBuffer(Vector2(38, gameCamera->GetScreenHeight() + 15), buffer);
+
+		sprintf_s(buffer, 30, "dir x: %.2f, y: %.2f", 
+			gameLevel->GetPlayer()->GetDir().x,
+			gameLevel->GetPlayer()->GetDir().y
+		);
+		Engine::Get().WriteToBuffer(Vector2(38, gameCamera->GetScreenHeight() + 16), buffer);
+	}
 
 	// »çÁø (73 ~ 107) ³ÐÀÌ 35Ä­ ³ôÀÌ 20Ä­ (57 ~ 71)
 	// °³Çà ¹®ÀÚ Æ÷ÇÔ 20, 20
@@ -159,6 +189,10 @@ void UIManager::Render()
 				);
 			}
 		}
+
+		char buffer[20] = { };
+		sprintf_s(buffer, 20, "Bullet : %d", gameLevel->GetPlayer()->GetBullet());
+		Engine::Get().WriteToBuffer(Vector2(150, gameCamera->GetScreenHeight() + 19), buffer);
 	}
 
 	// Todo: ÃÑ¾Ë °ü·Ã ·»´õ¸µ ÇØÁà¾ßÇÔ

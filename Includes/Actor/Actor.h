@@ -43,6 +43,7 @@ public:
 	void SetColor(const Color _color);
 
 	int GetWidth() const;
+	const char* GetImage() const { return image; }
 
 	// SortingOrder 설정 함수
 	// 숫자가 클수록 카메라에 가까움
@@ -73,7 +74,7 @@ public:
 
 protected:
 	Vector2 position;				// 개체의 위치
-	char* image;				// 그릴 값
+	char* image;					// 그릴 값
 	int width = 0;					// 문자열 길이
 	Color color;					// 텍스트 색상 값
 

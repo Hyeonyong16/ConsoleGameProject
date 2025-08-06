@@ -16,5 +16,6 @@ Asset::Asset(const char* _key, int _width, int _height, const char* _image)
 
 Asset::~Asset()
 {
+	SafeDeleteArray(key);
 	SafeDeleteArray(image);
 }

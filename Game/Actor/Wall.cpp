@@ -2,15 +2,14 @@
 #include "Level/GameLevel.h"
 
 Wall::Wall(const Vector2& _position)
-	: Actor("#", Color::Green, _position), isCheck(false)
+	: Actor("#", Color::White, _position), isCheck(false)
 {
 	SetSortingOrder(0);
 }
 
 void Wall::Tick(float _deltaTime)
 {
-	if (isCheck)
-		color = Color::White;
+	
 }
 
 void Wall::Render()

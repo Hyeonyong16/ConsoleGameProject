@@ -1,6 +1,7 @@
 #include "GameLevel.h"
 
 #include "Actor/Player.h"
+#include "Actor/Monster.h"
 #include "Actor/Wall.h"
 #include "Actor/Camera.h"
 #include "Actor/Item.h"
@@ -13,30 +14,38 @@
 
 GameLevel::GameLevel()
 {
-	// 플레이어 추가.
-	//AddActor(new Player());
 	ReadMapFile("Map1.txt");
 	AddActor(new UIManager(this));
+
+	size_t length = strlen("Map1.txt");
+	curMapFile = new char[length + 1];
+	strcpy_s(curMapFile, length, "Map1.txt");
+}
+
+GameLevel::GameLevel(const char* _mapFile)
+{
+	ReadMapFile(_mapFile);
+	AddActor(new UIManager(this));
+
+	size_t length = strlen(_mapFile) + 1;
+	curMapFile = new char[length];
+	strcpy_s(curMapFile, length, _mapFile);
 }
 
 GameLevel::~GameLevel()
 {
 	for (int i = 0; i < mapHeight; ++i)
 	{
-		if (nullptr != wallMap[i])
-		{
-			delete[] wallMap[i];
-			wallMap[i] = nullptr;
-		}
+		SafeDelete(wallMap[i]);
 	}
+	SafeDeleteArray(wallMap);
 
-	delete[] wallMap;
+	SafeDeleteArray(curMapFile);
 }
 
 void GameLevel::BeginPlay()
 {
 	super::BeginPlay();
-
 }
 
 void GameLevel::Tick(float _deltaTime)
@@ -55,6 +64,8 @@ void GameLevel::Render()
 		char buffer[20] = { };
 		sprintf_s(buffer, 20, "Score: %d", score);
 		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 7), buffer);
+		sprintf_s(buffer, 20, "Monster: %d", monsterNum);
+		Engine::Get().WriteToBuffer(Vector2(Engine::Get().GetWidth() - 35, 8), buffer);
 	}
 }
 
@@ -139,7 +150,7 @@ void GameLevel::ReadMapFile(const char* _fileName)
 			wallMap[position.y][position.x] = wall->GetID();
 			break;
 		}
-		case 'i':	// Todo: item 임시 처리
+		case 'i':	// item 임시 처리
 		case 'I':
 		{
 			Item* item = new Item(position);
@@ -150,14 +161,32 @@ void GameLevel::ReadMapFile(const char* _fileName)
 		case 'p':	// 플레이어 시작 위치
 		case 'P':
 		{
-			Player* player = new Player(position);
-			AddActor(player);
-			this->player = player;
+			if(nullptr == this->player)
+			{
+				Player* player = new Player(position);
+				AddActor(player);
+				this->player = player;
 
-			Camera* camera = new Camera(player);
-			AddActor(camera);
-			this->camera = camera;
-			player->SetCamera(camera);
+				Camera* camera = new Camera(player);
+				AddActor(camera);
+				this->camera = camera;
+				player->SetCamera(camera);
+			}
+			else
+			{
+				player->SetPosition(position);
+				player->ResyncPos();
+			}
+			break;
+		}
+		case 'M':	// 몬스터 생성
+		case 'm':
+		{
+			Monster* monster = new Monster(position);
+			AddActor(monster);
+			monsterIDs.emplace_back(monster->GetID());
+
+			++monsterNum;
 			break;
 		}
 		}

@@ -17,6 +17,8 @@ public:
 	// 타이머 시간 변경 함수.
 	void SetTargetTime(float newTargetTime);
 
+	inline float GetElapsedTime() const { return elapsedTime; }
+
 private:
 	float elapsedTime = 0.0f;
 	float targetTime = 0.0f;

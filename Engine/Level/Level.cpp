@@ -16,6 +16,20 @@ Level::~Level()
 	}
 
 	actors.clear();
+
+	for (Actor* actor : addRequestedActors)
+	{
+		SafeDelete(actor);
+	}
+
+	addRequestedActors.clear();
+
+	for (Actor* actor : destroyRequestedActors)
+	{
+		SafeDelete(actor);
+	}
+
+	destroyRequestedActors.clear();
 }
 
 // 레벨에 액터를 추가할 때 사용
@@ -73,6 +87,7 @@ void Level::Tick(float _deltaTime)
 {
 	for (Actor* const actor : actors)
 	{
+		if (nullptr == actor) continue;
 		// 액터 처리 여부 확인
 		if (!actor->isActive || actor->isExpired)
 		{
