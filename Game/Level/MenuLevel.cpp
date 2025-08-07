@@ -10,6 +10,7 @@ MenuLevel::MenuLevel()
 {
 	AssetLoading("TitleImage.txt");
 	AssetLoading("StartMenuImage.txt");
+	AssetLoading("ResetMenuImage.txt");
 	AssetLoading("ExitMenuImage.txt");
 
 	Asset* temp = nullptr;
@@ -25,7 +26,25 @@ MenuLevel::MenuLevel()
 	// 메뉴 아이템 추가.
 	items.emplace_back(new MenuItem(
 		temp,
-		[]() { Game::Get().GoLevel("Map1.txt"); }
+		[]() { 
+			char buffer[30] = {};
+			sprintf_s(buffer, 30, "Map%d.txt", Game::Get().GetCurStage());
+			Game::Get().GoLevel(buffer); 
+		}
+	));
+
+	for (Asset* asset : assets)
+	{
+		if (strcmp(asset->GetKey(), "ResetMenuImage") == 0)
+		{
+			temp = asset;
+			break;
+		}
+	}
+
+	items.emplace_back(new MenuItem(
+		temp,
+		[]() { Game::Get().ResetLevel(); }
 	));
 
 	for (Asset* asset : assets)
@@ -36,6 +55,7 @@ MenuLevel::MenuLevel()
 			break;
 		}
 	}
+
 	items.emplace_back(new MenuItem(
 		temp,
 		[]() { Game::Get().Quit(); }
@@ -86,6 +106,12 @@ void MenuLevel::Tick(float deltaTime)
 	if (Input::Get().GetKeyDown(VK_ESCAPE))
 	{
 		Engine::Get().Quit();
+	}
+
+	// Todo : 테스트용 리셋
+	if (Input::Get().GetKeyDown('O'))
+	{
+		Game::Get().ResetLevel();
 	}
 }
 

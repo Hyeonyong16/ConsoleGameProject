@@ -1,6 +1,7 @@
 #pragma once
 #include "Actor/Actor.h"
 #include "Asset/Asset.h"
+#include "Utils/Timer.h"
 
 #include <vector>
 
@@ -44,4 +45,6 @@ private:
 
 	// 이미지 에셋을 미리 로딩 해놓을 컨테이너
 	std::vector<Asset*> assets;
+	bool isFireRendering = false;
+	Timer fireRenderingTimer;
 };

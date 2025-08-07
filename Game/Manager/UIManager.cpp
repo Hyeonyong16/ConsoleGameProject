@@ -4,6 +4,8 @@
 #include "Actor/Player.h"
 #include "Actor/Camera.h"
 
+#include "Game/Game.h"
+
 #include <iostream>
 
 UIManager::UIManager(GameLevel* _gameLevel)
@@ -12,7 +14,11 @@ UIManager::UIManager(GameLevel* _gameLevel)
 	gameCamera = gameLevel->GetCamera();
 	AssetLoading("CharacterFace.txt");
 	AssetLoading("GunImage.txt");
+	AssetLoading("HandWithGunImage.txt");
 	AssetLoading("Num1.txt");
+	AssetLoading("Num2.txt");
+
+	fireRenderingTimer.SetTargetTime(0.3f);
 }
 
 UIManager::~UIManager()
@@ -33,7 +39,24 @@ void UIManager::BeginPlay()
 
 void UIManager::Tick(float _deltaTime)
 {
+	if (gameLevel->GetPlayer()->GetIsFire() && !isFireRendering)
+	{
+		isFireRendering = true;
+	}
 
+	if (isFireRendering)
+	{
+		fireRenderingTimer.Tick(_deltaTime);
+		if (fireRenderingTimer.IsTimeout())
+		{
+			if(!gameLevel->GetPlayer()->GetIsFire())
+			{
+				isFireRendering = false;
+				fireRenderingTimer.Reset();
+				fireRenderingTimer.SetTargetTime(0.3f);
+			}
+		}
+	}
 }
 
 void UIManager::Render()
@@ -70,9 +93,11 @@ void UIManager::Render()
 		int xPos = 1;
 		int yPos = gameCamera->GetScreenHeight() + 2;
 		Asset* characterAsset = nullptr;
+		char buffer[10];
+		sprintf_s(buffer, 10, "Num%d", Game::Get().GetCurStage());
 		for (Asset* asset : assets)
 		{
-			if (strcmp(asset->GetKey(), "Num1") == 0)
+			if (strcmp(asset->GetKey(), buffer) == 0)
 			{
 				characterAsset = asset;
 				break;
@@ -88,8 +113,7 @@ void UIManager::Render()
 				{
 					continue;
 				}
-
-				// Todo: 일단 모양 확인용으로 위치는 대충 끼워맞춘거 - 나중에 수정 필요
+				
 				Engine::Get().WriteToBuffer(
 					Vector2((i % (characterAsset->GetWidth())) + xPos + 10, (i / characterAsset->GetWidth()) + yPos + 3),
 					characterAsset->GetImage()[i],
@@ -198,7 +222,88 @@ void UIManager::Render()
 	// Todo: 총알 관련 렌더링 해줘야함
 	{}
 
+	// 사격 효과
+	{
+		if (isFireRendering && !fireRenderingTimer.IsTimeout())
+		{
+			Asset* characterAsset = nullptr;
+			for (Asset* asset : assets)
+			{
+				if (strcmp(asset->GetKey(), "HandWithGunImage") == 0)
+				{
+					characterAsset = asset;
+					break;
+				}
+			}
 
+			if (nullptr != characterAsset)
+			{
+				int xPos = gameCamera->GetScreenWidth() / 2 + 1;
+				int yPos = gameCamera->GetScreenHeight() + 1 - characterAsset->GetHeight();
+
+				float tempElapsedTime = fireRenderingTimer.GetElapsedTime();
+				float tempTargetTime = fireRenderingTimer.GetTargetTime();
+
+				for (int i = -3 + (int)(tempTargetTime / tempElapsedTime);
+					i < 4 - (int)(tempTargetTime / tempElapsedTime); ++i)
+				{
+					for (int j = -4 + (int)(tempTargetTime / tempElapsedTime);
+						j < 5 - (int)(tempTargetTime / tempElapsedTime); ++j)
+					{
+						Engine::Get().WriteToBuffer(
+							Vector2(xPos + j, yPos + i),
+							"*",
+							Color::Yellow
+						);
+					}
+				}
+			}
+			
+		}
+	}
+
+	// 손에 총든 이미지 렌더링
+	{
+		Asset* characterAsset = nullptr;
+		for (Asset* asset : assets)
+		{
+			if (strcmp(asset->GetKey(), "HandWithGunImage") == 0)
+			{
+				characterAsset = asset;
+				break;
+			}
+		}
+
+		if (nullptr != characterAsset)
+		{
+			int xPos = gameCamera->GetScreenWidth() / 2 - (characterAsset->GetWidth() / 2) + 1;
+			int yPos = gameCamera->GetScreenHeight() + 1 - characterAsset->GetHeight();
+
+			int imageSize = characterAsset->GetHeight() * characterAsset->GetWidth();
+			for (int i = 0; i < imageSize; ++i)
+			{
+				if (characterAsset->GetImage()[i] == '\n' || characterAsset->GetImage()[i] == '\0'
+					|| characterAsset->GetImage()[i] == ':')
+				{
+					continue;
+				}
+
+				Color tempColor = Color::White;
+
+				if (characterAsset->GetImage()[i] == 'o')
+				{
+					tempColor = Color::YellowIntensity;
+				}
+
+				Engine::Get().WriteToBuffer(
+					Vector2((i % (characterAsset->GetWidth())) + xPos, (i / characterAsset->GetWidth()) + yPos),
+					characterAsset->GetImage()[i],
+					tempColor
+				);
+			}
+		}
+
+	}
 }
 
 // 파일 이름으로 에셋을 불러와서 저장해두는 함수

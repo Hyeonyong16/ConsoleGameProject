@@ -1,6 +1,7 @@
 #pragma once
 #include "Actor/Actor.h"
 #include "Utils/Timer.h"
+#include "Level/Level.h"
 
 class Camera;
 struct Vec2Float
@@ -45,11 +46,16 @@ public:
 	inline void SetCamera(Camera* _camera) { cam = _camera; }
 
 	inline int GetBullet() const { return bullet; }
-	inline void IncreaseBullet(int _num) { bullet += _num; }
+	void IncreaseBullet();
+
+	inline bool GetIsFire() const { return isFire; }
 
 	inline Vec2Float GetPosFloat() const { return pos; }
 	inline Vec2Float GetDir() const { return dir; }
 	inline float GetAngle() const { return angle; }
+
+public:
+	void CollisionCheck();
 
 	// Vec2Float 위치랑 Vector2 위치를 동기화
 	void ResyncPos()

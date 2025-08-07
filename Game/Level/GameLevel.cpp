@@ -3,11 +3,13 @@
 #include "Actor/Player.h"
 #include "Actor/Monster.h"
 #include "Actor/Wall.h"
+#include "Actor/Portal.h"
 #include "Actor/Camera.h"
 #include "Actor/Item.h"
 #include "Manager/UIManager.h"
 
 #include "Engine.h"
+#include "Game/Game.h"
 
 #include <iostream>
 
@@ -53,6 +55,17 @@ void GameLevel::Tick(float _deltaTime)
 	super::Tick(_deltaTime);
 
 	if (Input::Get().GetKeyDown('T')) { isFPS = !isFPS; }
+
+	// Todo: Test 용 다음 레벨 가는 단축키
+	if (Input::Get().GetKeyDown('P')) 
+	{	Game::Get().GoNextLevel(); }
+
+	// 몬스터가 다 죽으면 포탈 만들기
+	if (monsterNum == 0)
+	{
+		Portal* portal = FindActorByID(portalId)->As<Portal>();
+		portal->SetIsActive(true);
+	}
 }
 
 void GameLevel::Render()
@@ -187,6 +200,15 @@ void GameLevel::ReadMapFile(const char* _fileName)
 			monsterIDs.emplace_back(monster->GetID());
 
 			++monsterNum;
+			break;
+		}
+
+		case 'N':
+		case 'n':
+		{
+			Portal* portal = new Portal(position);
+			AddActor(portal);
+			portalId = portal->GetID();
 			break;
 		}
 		}

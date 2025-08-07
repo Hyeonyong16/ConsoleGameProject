@@ -5,6 +5,7 @@
 #include "Actor/Wall.h"
 #include "Actor/Monster.h"
 #include "Actor/Item.h"
+#include "Actor/Portal.h"
 #include "Actor/Camera.h"
 
 #include "Game/Game.h"
@@ -200,26 +201,7 @@ void Player::Tick(float _deltaTime)
 		}
 	}
 
-	// Todo: 아이템 충돌 처리
-	GameLevel* gameLevel = owner->As<GameLevel>();
-	std::vector<int>& itemIdsVector = gameLevel->GetItemIDs();
-
-	for (int tempItemId : itemIdsVector)
-	{
-		Item* tempItem = owner->FindActorByID(tempItemId)->As<Item>();
-		Vector2 itemPos = tempItem->GetPosition();
-		if (position.x == itemPos.x && position.y == itemPos.y)
-		{
-			if (tempItem->GetPlayerCollision() == false)
-			{
-				//Todo: 아이템 먹었을 때 행동 추가
-				IncreaseBullet(3);
-
-				tempItem->SetPlayerCollision(true);
-			}
-			int a = 0;
-		}
-	}
+	CollisionCheck();
 }
 
 void Player::Render()
@@ -244,6 +226,45 @@ void Player::Render()
 	if (dynamic_cast<GameLevel*>(owner)->isFPS == false)
 	{
 		super::Render();
+	}
+}
+
+void Player::IncreaseBullet()
+{
+	{ bullet += 3; }
+}
+
+//충돌 체크
+void Player::CollisionCheck()
+{
+	// Todo: 아이템 충돌 처리
+	GameLevel* gameLevel = owner->As<GameLevel>();
+	std::vector<int>& itemIdsVector = gameLevel->GetItemIDs();
+
+	for (int tempItemId : itemIdsVector)
+	{
+		Item* tempItem = owner->FindActorByID(tempItemId)->As<Item>();
+		Vector2 itemPos = tempItem->GetPosition();
+		if (position.x == itemPos.x && position.y == itemPos.y)
+		{
+			if (tempItem->GetPlayerCollision() == false)
+			{
+				//Todo: 아이템 먹었을 때 행동 추가
+				IncreaseBullet();
+
+				tempItem->SetPlayerCollision(true);
+			}
+		}
+	}
+
+	Portal* tempPortal = owner->FindActorByID(gameLevel->GetPortalID())->As<Portal>();
+	Vector2 portalPos = tempPortal->GetPosition();
+	if (position.x == portalPos.x && position.y == portalPos.y)
+	{
+		if (tempPortal->GetPlayerCollision() == false)
+		{
+			tempPortal->SetPlayerCollision(true);
+		}
 	}
 }
 
@@ -282,11 +303,11 @@ void Player::Fire()
 		if (yPos < 0 || yPos >= (dynamic_cast<GameLevel*>(owner)->GetMapHeight())) return;
 
 		// 벽을 찍었으면
-		if (wallMap[(int)yPos][(int)xPos] != -1
-			&& owner->FindActorByID(wallMap[(int)yPos][(int)xPos])->As<Wall>())
-		{
-			owner->FindActorByID(wallMap[(int)yPos][(int)xPos])->As<Wall>()->SetColor(Color::Magenta);
-		}
+		//if (wallMap[(int)yPos][(int)xPos] != -1
+		//	&& owner->FindActorByID(wallMap[(int)yPos][(int)xPos])->As<Wall>())
+		//{
+		//	//owner->FindActorByID(wallMap[(int)yPos][(int)xPos])->As<Wall>()->SetColor(Color::Magenta);
+		//}
 		else
 		{
 			for (int id : gameLevel->GetMonsterIDs())

@@ -11,4 +11,12 @@ enum class Color
 	Yellow = Green | Red,
 	White = Red | Green | Blue,
 	Intensity = 8,
+
+	BlueIntensity = Blue | Intensity,
+	GreenIntensity = Green | Intensity,
+	CyanIntensity = Blue | Green | Intensity,
+	RedIntensity = Red | Intensity,
+	MagentaIntensity = Blue | Red | Intensity,
+	YellowIntensity = Green | Red | Intensity,
+	WhiteIntensity = Red | Green | Blue | Intensity,
 };

@@ -5,6 +5,7 @@
 
 class Player;
 class Camera;
+class Portal;
 class GameLevel : public Level
 {
 	RTTI_DECLARATIONS(GameLevel, Level)
@@ -38,8 +39,9 @@ public:
 	inline int GetMonsterNum() const { return monsterNum; }
 	inline void DecreaseMonsterNum() { --monsterNum; }
 
-	std::vector<int>& GetItemIDs() { return itemIDs; }
-	std::vector<int>& GetMonsterIDs() { return monsterIDs; }
+	inline std::vector<int>& GetItemIDs() { return itemIDs; }
+	inline std::vector<int>& GetMonsterIDs() { return monsterIDs; }
+	inline int GetPortalID() { return portalId; }
 
 	// 점수 증가
 	inline void AddScore() { ++score; }
@@ -70,6 +72,8 @@ private:
 	// 아이템 ID를 저장해둘 vector 컨테이너
 	std::vector<int> itemIDs;
 	std::vector<int> monsterIDs;
+
+	int portalId = -1;
 
 	// 현재 맵 파일
 	char* curMapFile = nullptr;

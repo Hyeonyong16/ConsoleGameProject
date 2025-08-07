@@ -9,11 +9,9 @@ Game::Game()
 	instance = this;
 	// 레벨 추가.
 	menuLevel = new MenuLevel();
-	AddLevelToVector(menuLevel, " ");
 
-	map1Level = new GameLevel("Map1.txt");
-	AddLevelToVector(map1Level, "Map1.txt");
-	//AddLevelToVector(new GameLevel("Map2.txt"), "Map2.txt");
+	AddLevelToVector(new GameLevel("Map1.txt"), "Map1.txt");
+	AddLevelToVector(new GameLevel("Map2.txt"), "Map2.txt");
 
 	AddLevel(menuLevel);
 }
@@ -34,7 +32,6 @@ void Game::GoMenu()
 
 	// 기존 레벨 제거
 	isLevelChangePreviousFrame = true;
-	//SafeDelete(backLevel);
 }
 
 void Game::GoLevel(const char* _map)
@@ -43,29 +40,49 @@ void Game::GoLevel(const char* _map)
 	// clear screen 명령어 실행.
 	system("cls");
 
-	/*for (std::pair<const char* , Level*> level : loadedLevels)
+	for (int i = 0; i < loadedLevels.size(); ++i)
 	{
-		if (strcmp(level.first, _map) == 0)
+		if (mainLevel != loadedLevels[i].second)
 		{
-			mainLevel = level.second;
+			if (strcmp(loadedLevels[i].first, _map) == 0)
+			{
+				mainLevel = loadedLevels[i].second;
+				curStage = i + 1;
+				return;
+			}
 		}
-	}*/
-	mainLevel = map1Level;
+	}
+}
+
+void Game::GoNextLevel()
+{
+	for (int i = 0; i < loadedLevels.size(); ++i)
+	{
+		if (mainLevel == loadedLevels[i].second)
+		{
+			if(i != loadedLevels.size() - 1)
+			{
+				mainLevel = loadedLevels[i + 1].second;
+				curStage = i + 2;
+				return;
+			}
+		}
+	}
 }
 
 void Game::CleanUp()
 {
-	SafeDelete(map1Level);
-	SafeDelete(menuLevel);
-
-	/*for (std::pair<const char*, Level*> level : loadedLevels)
+	for (std::pair<const char*, Level*> level : loadedLevels)
 	{
 		SafeDelete(level.second);
-	}*/
+	}
 
+	SafeDelete(menuLevel);
 	mainLevel = nullptr;
 
-	//loadedLevels.clear();
+	loadedLevels.clear();
+
+
 
 	Engine::CleanUp();
 }
@@ -73,6 +90,21 @@ void Game::CleanUp()
 Game& Game::Get()
 {
 	return *instance;
+}
+
+void Game::ResetLevel()
+{
+	for (std::pair<const char*, Level*> level : loadedLevels)
+	{
+		SafeDelete(level.second);
+	}
+	loadedLevels.clear();
+	loadedLevels.resize(0);
+
+	curStage = 1;
+
+	AddLevelToVector(new GameLevel("Map1.txt"), "Map1.txt");
+	AddLevelToVector(new GameLevel("Map2.txt"), "Map2.txt");
 }
 
 // 레벨들을 관리하기 위한 벡터
