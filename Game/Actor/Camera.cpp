@@ -33,7 +33,7 @@ Camera::Camera(Player* _player)
 
 	depthBuffer = new float[screenWidth];
 	for (int i = 0; i < screenWidth; ++i)
-		depthBuffer[i] = 0.f;
+		depthBuffer[i] = 20.f;
 }
 
 Camera::~Camera()
@@ -160,8 +160,8 @@ void Camera::DrawActorByDDA(std::vector<int> _actorIDs, float _renderScale)
 			rayAngleDir.y = sin(rayAngleRadian);
 
 			float curDist = 0.f;
-			float xDelta = fabs(1 / rayAngleDir.x); // x 값이 1 바뀔 때 직선 거리
-			float yDelta = fabs(1 / rayAngleDir.y); // y 값이 1 바뀔 때 직선 거리
+			float xDelta = rayAngleDir.x == 0.f ? 0.f : fabs(1 / rayAngleDir.x); // x 값이 1 바뀔 때 직선 거리
+			float yDelta = rayAngleDir.y == 0.f ? 0.f : fabs(1 / rayAngleDir.y); // y 값이 1 바뀔 때 직선 거리
 			//float xDist = xDelta * (ownerPlayer->pos.x - trunc(ownerPlayer->pos.x));	// 처음 x값이 바뀔때 직선 거리
 			//float yDist = yDelta * (ownerPlayer->pos.y - trunc(ownerPlayer->pos.y));	// 처음 y값이 바뀔때 직선 거리
 
@@ -170,7 +170,7 @@ void Camera::DrawActorByDDA(std::vector<int> _actorIDs, float _renderScale)
 			float yDist;
 			if ((rayAngle > 0.f && rayAngle <= 90.f) || (rayAngle > 270.f && rayAngle <= 360.f))
 			{
-				xDist = xDelta * (ownerPlayer->pos.x - trunc(ownerPlayer->pos.x + 1.f));
+				xDist = xDelta * (1 - (ownerPlayer->pos.x - trunc(ownerPlayer->pos.x)));
 			}
 			else
 			{
@@ -183,7 +183,7 @@ void Camera::DrawActorByDDA(std::vector<int> _actorIDs, float _renderScale)
 			}
 			else
 			{
-				yDist = yDelta * (ownerPlayer->pos.y - trunc(ownerPlayer->pos.y + 1.f));
+				yDist = yDelta * (1 - (ownerPlayer->pos.y - trunc(ownerPlayer->pos.y)));
 			}
 
 			// DDA좌표확인용
@@ -192,6 +192,9 @@ void Camera::DrawActorByDDA(std::vector<int> _actorIDs, float _renderScale)
 
 			while (curDist <= itemDist)
 			{
+
+				if (xDelta == 0) xDist = 9999999;
+				else if (yDelta == 0) yDist = 9999999;
 				// yDist 가 xDist 보다 짧다 -> y = n 에서 만난다
 				if (xDist > yDist)
 				{
@@ -380,8 +383,8 @@ void Camera::DrawActorByDDA(int _actorId, float _renderScale)
 		rayAngleDir.y = sin(rayAngleRadian);
 
 		float curDist = 0.f;
-		float xDelta = fabs(1 / rayAngleDir.x); // x 값이 1 바뀔 때 직선 거리
-		float yDelta = fabs(1 / rayAngleDir.y); // y 값이 1 바뀔 때 직선 거리
+		float xDelta = rayAngleDir.x == 0.f ? 0.f : fabs(1 / rayAngleDir.x); // x 값이 1 바뀔 때 직선 거리
+		float yDelta = rayAngleDir.y == 0.f ? 0.f : fabs(1 / rayAngleDir.y); // y 값이 1 바뀔 때 직선 거리
 		//float xDist = xDelta * (ownerPlayer->pos.x - trunc(ownerPlayer->pos.x));	// 처음 x값이 바뀔때 직선 거리
 		//float yDist = yDelta * (ownerPlayer->pos.y - trunc(ownerPlayer->pos.y));	// 처음 y값이 바뀔때 직선 거리
 
@@ -390,7 +393,7 @@ void Camera::DrawActorByDDA(int _actorId, float _renderScale)
 		float yDist;
 		if ((rayAngle > 0.f && rayAngle <= 90.f) || (rayAngle > 270.f && rayAngle <= 360.f))
 		{
-			xDist = xDelta * (ownerPlayer->pos.x - trunc(ownerPlayer->pos.x + 1.f));
+			xDist = xDelta * (1 - (ownerPlayer->pos.x - trunc(ownerPlayer->pos.x)));
 		}
 		else
 		{
@@ -403,7 +406,7 @@ void Camera::DrawActorByDDA(int _actorId, float _renderScale)
 		}
 		else
 		{
-			yDist = yDelta * (ownerPlayer->pos.y - trunc(ownerPlayer->pos.y + 1.f));
+			yDist = yDelta * (1 - (ownerPlayer->pos.y - trunc(ownerPlayer->pos.y)));
 		}
 
 		// DDA좌표확인용
@@ -412,6 +415,8 @@ void Camera::DrawActorByDDA(int _actorId, float _renderScale)
 
 		while (curDist <= itemDist)
 		{
+			if (xDelta == 0) xDist = 9999999;
+			else if (yDelta == 0) yDist = 9999999;
 			// yDist 가 xDist 보다 짧다 -> y = n 에서 만난다
 			if (xDist > yDist)
 			{
@@ -550,15 +555,15 @@ void Camera::Tick(float _deltaTime)
 		float curDist = 0.f;
 		float xDelta = rayAngleDir.x == 0.f ? 0.f : fabs(1 / rayAngleDir.x); // x 값이 1 바뀔 때 직선 거리
 		float yDelta = rayAngleDir.y == 0.f ? 0.f : fabs(1 / rayAngleDir.y); // y 값이 1 바뀔 때 직선 거리
-		float xDist = xDelta * (ownerPlayer->pos.x - trunc(ownerPlayer->pos.x));	// 처음 x값이 바뀔때 직선 거리
-		float yDist = yDelta * (ownerPlayer->pos.y - trunc(ownerPlayer->pos.y));	// 처음 y값이 바뀔때 직선 거리
+		//float xDist = xDelta * (1 - (ownerPlayer->pos.x - trunc(ownerPlayer->pos.x)));	// 처음 x값이 바뀔때 직선 거리
+		//float yDist = yDelta * (1 - (ownerPlayer->pos.y - trunc(ownerPlayer->pos.y)));	// 처음 y값이 바뀔때 직선 거리
 
 		// 방향에 따라 거리가 달라짐
-		/*float xDist;
+		float xDist;
 		float yDist;
 		if ((rayAngle > 0.f && rayAngle <= 90.f) || (rayAngle > 270.f && rayAngle <= 360.f))
 		{
-			xDist = xDelta * (ownerPlayer->pos.x - trunc(ownerPlayer->pos.x + 1.f));
+			xDist = xDelta * (1 - (ownerPlayer->pos.x - trunc(ownerPlayer->pos.x)));
 		}
 		else
 		{
@@ -571,8 +576,8 @@ void Camera::Tick(float _deltaTime)
 		}
 		else
 		{
-			yDist = yDelta * (ownerPlayer->pos.y - trunc(ownerPlayer->pos.y + 1.f));
-		}*/
+			yDist = yDelta * (1 - (ownerPlayer->pos.y - trunc(ownerPlayer->pos.y)));
+		}
 
 		// DDA좌표확인용
 		int xPosDDA = ownerPlayer->pos.x;

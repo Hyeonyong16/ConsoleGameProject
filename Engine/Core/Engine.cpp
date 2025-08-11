@@ -39,6 +39,21 @@ Engine::Engine()
 		&info
 	);
 
+	//// 콘솔창 폰트 사이즈 조정
+	//CONSOLE_FONT_INFOEX cfi;
+	//cfi.cbSize = sizeof(cfi);
+	//cfi.nFont = 0;
+	//cfi.dwFontSize.X = 5;
+	//cfi.dwFontSize.Y = 11;
+	//cfi.FontFamily = FF_DONTCARE;
+	//cfi.FontWeight = FW_NORMAL;
+
+	//SetCurrentConsoleFontEx(
+	//	GetStdHandle(STD_OUTPUT_HANDLE),
+	//	FALSE,
+	//	&cfi
+	//);
+
 	// 엔진 설정 로드
 	LoadEngineSettings();
 
